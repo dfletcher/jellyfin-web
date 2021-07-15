@@ -245,20 +245,20 @@ import Headroom from 'headroom.js';
     }
 
     function readLightState() {
-        let xhr = new XMLHttpRequest;
+        const xhr = new XMLHttpRequest;
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 const prev = lightsValue;
-                lightsValue = parseInt(xhr.responseText.replace(/"/g,""), 16);
+                lightsValue = parseInt(xhr.responseText.replace(/"/g,''), 16);
                 if (prev != lightsValue) {
                     setLights();
                 }
             }
         };
-        xhr.open("GET", "http://home.media:8120/front-windows/value");
+        xhr.open('GET', 'http://home.media:8120/front-windows/value');
         xhr.send();
     }
-    var lightsTimer = window.setInterval(readLightState, 5000);
+    window.setInterval(readLightState, 5000);
     readLightState();
 
     function lightsAreOn() {
@@ -269,20 +269,19 @@ import Headroom from 'headroom.js';
         if (lightsAreOn()) {
             lightsButtonIcon.classList.add('nights_stay');
             lightsButtonIcon.classList.remove('wb_sunny');
-        }
-        else {
+        } else {
             lightsButtonIcon.classList.add('wb_sunny');
             lightsButtonIcon.classList.remove('nights_stay');
         }
     }
 
     function onLightsButtonClicked() {
-        var command = lightsAreOn() ? '0' : 'ffff';
-        var xhr = new XMLHttpRequest;
+        const command = lightsAreOn() ? '0' : 'ffff';
+        const xhr = new XMLHttpRequest;
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 const prev = lightsValue;
-                lightsValue = parseInt(xhr.responseText.replace(/"/g,""), 16);
+                lightsValue = parseInt(xhr.responseText.replace(/"/g, ''), 16);
                 if (prev != lightsValue) {
                     setLights();
                 }
@@ -293,7 +292,7 @@ import Headroom from 'headroom.js';
     }
 
     function screenButtonClicked(device) {
-        let xhr = new XMLHttpRequest;
+        const xhr = new XMLHttpRequest;
         xhr.open('GET', 'http://home.media:8120/' + device + '/press');
         xhr.send();
     }
