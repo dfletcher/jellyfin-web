@@ -32,6 +32,9 @@ import Headroom from 'headroom.js';
         html += '</div>';
         html += '<div class="headerRight">';
         html += '<span class="headerSelectedPlayer"></span>';
+        html += `<button is="paper-icon-button-light" class="headerLightsButton headerButton headerButtonRight" title="Toggle lights"><span class="material-icons"></span></button>`;
+        html += `<button is="paper-icon-button-light" class="headerScreenUpButton screenUpButton headerButton headerButtonRight" title="Raise theater screen"><span class="material-icons arrow_upward"></span></button>`;
+        html += `<button is="paper-icon-button-light" class="headerScreenDownButton screenDownButton headerButton headerButtonRight" title="Lower theater screen"><span class="material-icons arrow_downward"></span></button>`;
         html += '<button is="paper-icon-button-light" class="headerSyncButton syncButton headerButton headerButtonRight hide"><span class="material-icons groups"></span></button>';
         html += '<button is="paper-icon-button-light" class="headerAudioPlayerButton audioPlayerButton headerButton headerButtonRight hide"><span class="material-icons music_note"></span></button>';
         html += '<button is="paper-icon-button-light" class="headerCastButton castButton headerButton headerButtonRight hide"><span class="material-icons cast"></span></button>';
@@ -54,6 +57,10 @@ import Headroom from 'headroom.js';
         headerAudioPlayerButton = skinHeader.querySelector('.headerAudioPlayerButton');
         headerSearchButton = skinHeader.querySelector('.headerSearchButton');
         headerSyncButton = skinHeader.querySelector('.headerSyncButton');
+        lightsButton = skinHeader.querySelector('.headerLightsButton')
+        lightsButtonIcon = skinHeader.querySelector('.headerLightsButton span.material-icons')
+        screenUpButton = skinHeader.querySelector('.headerScreenUpButton');
+        screenDownButton = skinHeader.querySelector('.headerScreenDownButton');
 
         retranslateUi();
         lazyLoadViewMenuBarImages();
@@ -199,6 +206,10 @@ import Headroom from 'headroom.js';
         headerAudioPlayerButton.addEventListener('click', showAudioPlayer);
         headerSyncButton.addEventListener('click', onSyncButtonClicked);
 
+        screenUpButton.addEventListener('click', onScreenUpButtonClicked);
+        screenDownButton.addEventListener('click', onScreenDownButtonClicked);
+        lightsButton.addEventListener('click', onLightsButtonClicked);
+
         if (layoutManager.mobile) {
             initHeadRoom(skinHeader);
         }
@@ -231,6 +242,72 @@ import Headroom from 'headroom.js';
     function onSyncButtonClicked() {
         const btn = this;
         groupSelectionMenu.show(btn);
+    }
+
+    function readLightState(window) {
+        var xhr = new XMLHttpRequest;
+        xhr.onreadystatechange = function()
+        {
+            if (xhr.readyState == 4 && xhr.status == 200)
+            {
+                const prev = lightsValue;
+                lightsValue = parseInt(xhr.responseText.replace(/"/g,""), 16);
+                if (prev != lightsValue) {
+                    setLights();
+                }
+            }
+        };
+        xhr.open("GET", "http://home.media:8120/front-windows/value");
+        xhr.send();
+    }
+    var lightsTimer = window.setInterval(readLightState, 5000, window);
+    readLightState();
+
+    function lightsAreOn() {
+        return (lightsValue >= 0xfff);
+    }
+
+    function setLights() {
+        if (lightsAreOn()) {
+            lightsButtonIcon.classList.add('nights_stay');
+            lightsButtonIcon.classList.remove('wb_sunny');
+        }
+        else {
+            lightsButtonIcon.classList.add('wb_sunny');
+            lightsButtonIcon.classList.remove('nights_stay');
+        }
+    }
+
+    function onLightsButtonClicked() {
+        var command = lightsAreOn() ? '0' : 'ffff';
+        var xhr = new XMLHttpRequest;
+        xhr.onreadystatechange = function()
+        {
+            if (xhr.readyState == 4 && xhr.status == 200)
+            {
+                const prev = lightsValue;
+                lightsValue = parseInt(xhr.responseText.replace(/"/g,""), 16);
+                if (prev != lightsValue) {
+                    setLights();
+                }
+            }
+        };
+        xhr.open("GET", "http://home.media:8120/front-windows/value/" + command);
+        xhr.send();
+    }
+
+    function screenButtonClicked(device) {
+        var xhr = new XMLHttpRequest;
+        xhr.open("GET", "http://home.media:8120/" + device + "/press");
+        xhr.send();
+    }
+
+    function onScreenUpButtonClicked() {
+        return screenButtonClicked('screen-up');
+    }
+
+    function onScreenDownButtonClicked() {
+        return screenButtonClicked('screen-down');
     }
 
     function getItemHref(item, context) {
@@ -891,6 +968,11 @@ import Headroom from 'headroom.js';
     let headerSearchButton;
     let headerAudioPlayerButton;
     let headerSyncButton;
+    let lightsButton;
+    let lightsButtonIcon;
+    let lightsValue;
+    let screenUpButton;
+    let screenDownButton;    
     const enableLibraryNavDrawer = layoutManager.desktop;
     const enableLibraryNavDrawerHome = !layoutManager.tv;
     const skinHeader = document.querySelector('.skinHeader');
