@@ -249,7 +249,7 @@ import Headroom from 'headroom.js';
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 const prev = lightsValue;
-                lightsValue = parseInt(xhr.responseText.replace(/"/g,''), 16);
+                lightsValue = parseInt(xhr.responseText.replace(/"/g, ''), 16);
                 if (prev != lightsValue) {
                     setLights();
                 }
